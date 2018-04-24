@@ -1,4 +1,4 @@
-package logger
+package unilogger
 
 // StdLogger is the logger interface for standard log library
 type StdLogger interface {
