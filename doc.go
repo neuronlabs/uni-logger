@@ -1,5 +1,5 @@
 /*
-package logger contains LoggerWrapper, BasicLogger and logging interfaces.
+package unilogger contains LoggerWrapper, BasicLogger and logging interfaces.
 
 In order not to extort any specific logging package, a LoggerWrapper has been created.
 LoggerWrapper wraps around third-party loggers that implement one of the logging-interfaces:
@@ -15,4 +15,4 @@ There is also BasicLogger logger that implements 'LeveledLogger' interface.
 It is very simple and lightweight implementation of leveled logger.
 */
 
-package logger
+package unilogger
