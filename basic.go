@@ -30,19 +30,29 @@ const (
 	ERROR
 	CRITICAL
 	PRINT
+	UNKNOWN
 )
 
-var level_names = []string{
-	"DEBUG",
-	"INFO",
-	"WARNING",
-	"ERROR",
-	"CRITICAL",
-	"INFO",
+var levelNames = map[Level]string{
+	DEBUG:    "DEBUG",
+	INFO:     "INFO",
+	WARNING:  "WARNING",
+	ERROR:    "ERROR",
+	CRITICAL: "CRITICAL",
+	PRINT:    "INFO",
 }
 
 func (l Level) String() string {
-	return level_names[l]
+	return levelNames[l]
+}
+
+func ParseLevel(level string) Level {
+	for l, name := range levelNames {
+		if name == level {
+			return l
+		}
+	}
+	return UNKNOWN
 }
 
 /**
@@ -220,7 +230,7 @@ func (l *BasicLogger) log(level Level, format *string, args ...interface{}) {
 		fmt:   format,
 		args:  args,
 	}
-	l.stdLogger.Output(2, msg.String())
+	l.stdLogger.Output(3, msg.String())
 }
 
 func (l *BasicLogger) isLevelEnabled(level Level) bool {

@@ -1,5 +1,9 @@
 package unilogger
 
+type LevelSetter interface {
+	SetLevel(level Level)
+}
+
 // StdLogger is the logger interface for standard log library
 type StdLogger interface {
 	Print(args ...interface{})
