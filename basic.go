@@ -115,8 +115,9 @@ BasicLogger
 // I.e. Having BasicLogger with level Set to WARNING, then there would be
 // no DEBUG and INFO logs (the hierarchy goes up only).
 type BasicLogger struct {
-	stdLogger *log.Logger
-	level     Level
+	stdLogger   *log.Logger
+	level       Level
+	outputDepth int
 }
 
 // NewBasicLogger creates new BasicLogger that shares common sequence id.
@@ -125,8 +126,9 @@ type BasicLogger struct {
 // The arguments used in this function are described in log.New() method.
 func NewBasicLogger(out io.Writer, prefix string, flags int) *BasicLogger {
 	logger := &BasicLogger{
-		stdLogger: log.New(out, prefix, flags),
-		level:     DEBUG,
+		stdLogger:   log.New(out, prefix, flags),
+		level:       INFO,
+		outputDepth: 3,
 	}
 	return logger
 }
@@ -134,6 +136,15 @@ func NewBasicLogger(out io.Writer, prefix string, flags int) *BasicLogger {
 // SetLevel sets the level of logging for given Logger.
 func (l *BasicLogger) SetLevel(level Level) {
 	l.level = level
+}
+
+func (l *BasicLogger) SetOutputDepth(depth int) {
+	l.outputDepth = depth
+}
+
+// GetOutputDepth gets the output depth
+func (l *BasicLogger) GetOutputDepth() int {
+	return l.outputDepth
 }
 
 // Logs a message with DEBUG level.
@@ -230,7 +241,7 @@ func (l *BasicLogger) log(level Level, format *string, args ...interface{}) {
 		fmt:   format,
 		args:  args,
 	}
-	l.stdLogger.Output(3, msg.String())
+	l.stdLogger.Output(l.outputDepth, msg.String())
 }
 
 func (l *BasicLogger) isLevelEnabled(level Level) bool {

@@ -1,7 +1,17 @@
 package unilogger
 
+// LevelSetter is the interface that allows to set the logging level
 type LevelSetter interface {
 	SetLevel(level Level)
+}
+
+// OutputDepthSetter is the interface that sets the output depth for the logging interface
+type OutputDepthSetter interface {
+	SetOutputDepth(depth int)
+}
+
+type OutputDepthGetter interface {
+	GetOutputDepth() int
 }
 
 // StdLogger is the logger interface for standard log library
