@@ -5,26 +5,26 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"sync/atomic"
 )
 
-var logSequenceID uint64
-
-func init() {
-	logSequenceID = 0
-}
+var logSequenceID = uint64(0)
 
 /**
 
 Levels
 
 */
+
 // Level defines a logging level used in BasicLogger
 type Level int
 
 // Following levels are supported in BasicLogger
 const (
-	DEBUG Level = iota
+	DEBUG3 Level = iota
+	DEBUG2
+	DEBUG
 	INFO
 	WARNING
 	ERROR
@@ -34,6 +34,8 @@ const (
 )
 
 var levelNames = map[Level]string{
+	DEBUG3:   "DEBUG3",
+	DEBUG2:   "DEBUG2",
 	DEBUG:    "DEBUG",
 	INFO:     "INFO",
 	WARNING:  "WARNING",
@@ -46,7 +48,10 @@ func (l Level) String() string {
 	return levelNames[l]
 }
 
+// ParseLevel parses level from string
 func ParseLevel(level string) Level {
+	level = strings.ToUpper(level)
+
 	for l, name := range levelNames {
 		if name == level {
 			return l
@@ -103,14 +108,16 @@ BasicLogger
 
 */
 
-// BasicLogger is simple leveled logger that implements LeveledLogger interface.
-// It uses 5 basic log levels:
+// BasicLogger is simple leveled logger that implements DebugLeveledLogger interface.
+// It uses 7 log levels:
+//  # DEBUG3
+//  # DEBUG2
 //	# DEBUG
 //	# INFO
 //	# WARNING
 //	# ERROR
 //	# CRITICAL
-// By default DEBUG level is used. It may be reset using SetLevel() method.
+// By default INFO level is used. It may be reset using SetLevel() method.
 // It allows to filter the logs by given level.
 // I.e. Having BasicLogger with level Set to WARNING, then there would be
 // no DEBUG and INFO logs (the hierarchy goes up only).
@@ -119,6 +126,8 @@ type BasicLogger struct {
 	level       Level
 	outputDepth int
 }
+
+var _ DebugLeveledLogger = &BasicLogger{}
 
 // NewBasicLogger creates new BasicLogger that shares common sequence id.
 // By default it uses DEBUG level. It can be changed later using SetLevel() method.
@@ -138,6 +147,8 @@ func (l *BasicLogger) SetLevel(level Level) {
 	l.level = level
 }
 
+// SetOutputDepth set sthe output depth of the basic logger
+// the output depth is the standard logger function depths
 func (l *BasicLogger) SetOutputDepth(depth int) {
 	l.outputDepth = depth
 }
@@ -147,78 +158,98 @@ func (l *BasicLogger) GetOutputDepth() int {
 	return l.outputDepth
 }
 
-// Logs a message with DEBUG level.
+// Debug3 logs a message with DEBUG level.
+func (l *BasicLogger) Debug3(args ...interface{}) {
+	l.log(DEBUG3, nil, args...)
+}
+
+// Debug3f logs a formatted message with DEBUG level
+func (l *BasicLogger) Debug3f(format string, args ...interface{}) {
+	l.log(DEBUG3, &format, args...)
+}
+
+// Debug2 logs a message with DEBUG level.
+func (l *BasicLogger) Debug2(args ...interface{}) {
+	l.log(DEBUG2, nil, args...)
+}
+
+// Debug2f logs a formatted message with DEBUG level
+func (l *BasicLogger) Debug2f(format string, args ...interface{}) {
+	l.log(DEBUG2, &format, args...)
+}
+
+// Debug logs a message with DEBUG level.
 func (l *BasicLogger) Debug(args ...interface{}) {
 	l.log(DEBUG, nil, args...)
 }
 
-// Logs a formatted message with DEBUG level
+// Debugf logs a formatted message with DEBUG level
 func (l *BasicLogger) Debugf(format string, args ...interface{}) {
 	l.log(DEBUG, &format, args...)
 }
 
-// Logs a message with INFO level
+// Info logs a message with INFO level
 func (l *BasicLogger) Info(args ...interface{}) {
 	l.log(INFO, nil, args...)
 }
 
-// Logs a formatted message with INFO level.
+// Infof logs a formatted message with INFO level.
 func (l *BasicLogger) Infof(format string, args ...interface{}) {
 	l.log(INFO, &format, args...)
 }
 
-// Logs a message. Arguments are handled in a log.Print manner.
+// Print logs a message. Arguments are handled in a log.Print manner.
 func (l *BasicLogger) Print(args ...interface{}) {
 	l.log(PRINT, nil, args...)
 }
 
-// Logs a formatted message. Arguments are handled in a log.Printf manner.
+// Printf logs a formatted message. Arguments are handled in a log.Printf manner.
 func (l *BasicLogger) Printf(format string, args ...interface{}) {
 	l.log(PRINT, &format, args...)
 }
 
-// Logs a message with WARNING level. Arguments are handled in a log.Print manner.
+// Warning logs a message with WARNING level. Arguments are handled in a log.Print manner.
 func (l *BasicLogger) Warning(args ...interface{}) {
 	l.log(WARNING, nil, args...)
 }
 
-// Logs a formatted message with WARNING level. Arguments are handled in a log.Printf manner.
+// Warningf logs a formatted message with WARNING level. Arguments are handled in a log.Printf manner.
 func (l *BasicLogger) Warningf(format string, args ...interface{}) {
 	l.log(WARNING, &format, args...)
 }
 
-// Logs a message with ERROR level. Arguments are handled in a log.Print manner.
+// Error logs a message with ERROR level. Arguments are handled in a log.Print manner.
 func (l *BasicLogger) Error(args ...interface{}) {
 	l.log(ERROR, nil, args...)
 }
 
-// Logs a formatted message with ERROR level. Arguments are handled in a log.Printf manner.
+// Errorf logs a formatted message with ERROR level. Arguments are handled in a log.Printf manner.
 func (l *BasicLogger) Errorf(format string, args ...interface{}) {
 	l.log(ERROR, &format, args...)
 }
 
-// Logs a message with CRITICAL level. Afterwards the function execute os.Exit(1).
+// Fatal logs a message with CRITICAL level. Afterwards the function execute os.Exit(1).
 // Arguments are handled in a log.Print manner.
 func (l *BasicLogger) Fatal(args ...interface{}) {
 	l.log(CRITICAL, nil, args...)
 	os.Exit(1)
 }
 
-// Logs a formatted message with CRITICAL level. Afterwards the function execute os.Exit(1).
+// Fatalf logs a formatted message with CRITICAL level. Afterwards the function execute os.Exit(1).
 // Arguments are handled in a log.Printf manner.
 func (l *BasicLogger) Fatalf(format string, args ...interface{}) {
 	l.log(CRITICAL, &format, args...)
 	os.Exit(1)
 }
 
-// Logs a message with CRITICAL level. Afterwards the function panics with given message.
+// Panic logs a message with CRITICAL level. Afterwards the function panics with given message.
 // Arguments are handled in a log.Print manner.
 func (l *BasicLogger) Panic(args ...interface{}) {
 	l.log(CRITICAL, nil, args...)
 	panic(fmt.Sprint(args...))
 }
 
-// Logs a formatted message with CRITICAL level. Afterwards the function panics with given
+// Panicf logs a formatted message with CRITICAL level. Afterwards the function panics with given
 // formatted message. Arguments are handled in a log.Printf manner.
 func (l *BasicLogger) Panicf(format string, args ...interface{}) {
 	l.log(CRITICAL, &format, args...)
@@ -241,6 +272,7 @@ func (l *BasicLogger) log(level Level, format *string, args ...interface{}) {
 		fmt:   format,
 		args:  args,
 	}
+
 	l.stdLogger.Output(l.outputDepth, msg.String())
 }
 

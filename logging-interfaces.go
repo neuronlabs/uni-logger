@@ -10,6 +10,7 @@ type OutputDepthSetter interface {
 	SetOutputDepth(depth int)
 }
 
+// OutputDepthGetter is the interface that gets the output get
 type OutputDepthGetter interface {
 	GetOutputDepth() int
 }
@@ -46,6 +47,16 @@ type LeveledLogger interface {
 	Panic(args ...interface{})
 }
 
+// DebugLeveledLogger is Leveled Logger with the debug2 and debug3 levels
+type DebugLeveledLogger interface {
+	LeveledLogger
+	Debug2(args ...interface{})
+	Debug3(args ...interface{})
+
+	Debug2f(format string, args ...interface{})
+	Debug3f(format string, args ...interface{})
+}
+
 // ShortLeveledLogger is a logger that uses basic logging leveles
 // with short name for Warn
 type ShortLeveledLogger interface {
@@ -64,7 +75,7 @@ type ShortLeveledLogger interface {
 	Panic(args ...interface{})
 }
 
-// ExtendedLogger adds distinction between Leveled methods that starts new or not
+// ExtendedLeveledLogger adds distinction between Leveled methods that starts new or not
 // i.e.: 'Debugln' and 'Debug'.
 // It also adds all Print's methods.
 type ExtendedLeveledLogger interface {
@@ -72,6 +83,8 @@ type ExtendedLeveledLogger interface {
 	Printf(format string, args ...interface{})
 	Println(args ...interface{})
 
+	Debug3f(format string, args ...interface{})
+	Debug2f(format string, args ...interface{})
 	Debugf(format string, args ...interface{})
 	Infof(format string, args ...interface{})
 	Warningf(format string, args ...interface{})
@@ -79,6 +92,8 @@ type ExtendedLeveledLogger interface {
 	Fatalf(format string, args ...interface{})
 	Panicf(format string, args ...interface{})
 
+	Debug3(format string, args ...interface{})
+	Debug2(format string, args ...interface{})
 	Debug(args ...interface{})
 	Info(args ...interface{})
 	Warning(args ...interface{})
@@ -86,6 +101,8 @@ type ExtendedLeveledLogger interface {
 	Fatal(args ...interface{})
 	Panic(args ...interface{})
 
+	Debug3ln(args ...interface{})
+	Debug2ln(args ...interface{})
 	Debugln(args ...interface{})
 	Infoln(args ...interface{})
 	Warningln(args ...interface{})
