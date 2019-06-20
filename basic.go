@@ -17,10 +17,10 @@ Levels
 
 */
 
-// Level defines a logging level used in BasicLogger
+// Level defines a logging level used in BasicLogger.
 type Level int
 
-// Following levels are supported in BasicLogger
+// Following levels are supported in BasicLogger.
 const (
 	DEBUG3 Level = iota
 	DEBUG2
@@ -48,7 +48,7 @@ func (l Level) String() string {
 	return levelNames[l]
 }
 
-// ParseLevel parses level from string
+// ParseLevel parses level from string.
 func ParseLevel(level string) Level {
 	level = strings.ToUpper(level)
 
@@ -66,7 +66,7 @@ Message
 
 */
 
-// Message is a basic logging record structure used in BasicLogger
+// Message is a basic logging record structure used in BasicLogger.
 type Message struct {
 	id      uint64
 	level   Level
@@ -76,7 +76,7 @@ type Message struct {
 }
 
 // Message prepares the string message based on the format and args private fields
-// of the message
+// of the message.
 func (m *Message) Message() string {
 	return m.getMessage()
 }
@@ -96,7 +96,8 @@ func (m *Message) getMessage() string {
 }
 
 // String returns string that concantates:
-// id hash - 4 digits|time formatted in RFC339|level|message
+// id hash - 4 digits|time formatted in RFC339|level|message.
+// Implements fmt.Stringer interface.
 func (m *Message) String() string {
 	msg := fmt.Sprintf("%s|%04x: %s", m.level, m.id, m.getMessage())
 	return msg
@@ -163,7 +164,7 @@ func (l *BasicLogger) Debug3(args ...interface{}) {
 	l.log(DEBUG3, nil, args...)
 }
 
-// Debug3f logs a formatted message with DEBUG level
+// Debug3f logs a formatted message with DEBUG level.
 func (l *BasicLogger) Debug3f(format string, args ...interface{}) {
 	l.log(DEBUG3, &format, args...)
 }
@@ -173,7 +174,7 @@ func (l *BasicLogger) Debug2(args ...interface{}) {
 	l.log(DEBUG2, nil, args...)
 }
 
-// Debug2f logs a formatted message with DEBUG level
+// Debug2f logs a formatted message with DEBUG level.
 func (l *BasicLogger) Debug2f(format string, args ...interface{}) {
 	l.log(DEBUG2, &format, args...)
 }
@@ -183,12 +184,12 @@ func (l *BasicLogger) Debug(args ...interface{}) {
 	l.log(DEBUG, nil, args...)
 }
 
-// Debugf logs a formatted message with DEBUG level
+// Debugf logs a formatted message with DEBUG level.
 func (l *BasicLogger) Debugf(format string, args ...interface{}) {
 	l.log(DEBUG, &format, args...)
 }
 
-// Info logs a message with INFO level
+// Info logs a message with INFO level.
 func (l *BasicLogger) Info(args ...interface{}) {
 	l.log(INFO, nil, args...)
 }

@@ -503,7 +503,7 @@ func (c *LoggerWrapper) Panic(args ...interface{}) {
 	}
 }
 
-// Panifc logs a formatted message with CRITICAL level. Afterwards it should panic.
+// Panicf logs a formatted message with CRITICAL level. Afterwards it should panic.
 // Arguments are handled in the manner of log.Panicf for StdLogger, LeveledLogger,
 // ShortLeveledLogger and ExtendedLeveledLogger.
 func (c *LoggerWrapper) Panicf(format string, args ...interface{}) {

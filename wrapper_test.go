@@ -2,9 +2,9 @@ package unilogger
 
 import (
 	"fmt"
-	. "github.com/smartystreets/goconvey/convey"
-	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type stdlogger struct{}
@@ -63,103 +63,79 @@ func (e *extendedLogger) Errorln(args ...interface{})               {}
 func (e *extendedLogger) Fatalln(args ...interface{})               {}
 func (e *extendedLogger) Panicln(args ...interface{})               {}
 
-type NonLogger struct{}
+type nonLogger struct{}
 
+// TestNewLoggerWrapper tests NewLoggerWrapper function.
 func TestNewLoggerWrapper(t *testing.T) {
-	Convey("Subject: New Logger Wrapper.", t, func() {
-		Convey("Having some loggers", func() {
-			loggers := []interface{}{&stdlogger{}, &leveledLogger{}, &shortLeveledLogger{}, &extendedLogger{}}
+	loggers := []interface{}{&stdlogger{}, &leveledLogger{}, &shortLeveledLogger{}, &extendedLogger{}}
 
-			Convey(`If the logger implement possible interfaces,
-			 wrapper handler should be returned`, func() {
-				for i, logger := range loggers {
-					wrapper, err := NewLoggerWrapper(logger)
-					So(wrapper, ShouldHaveSameTypeAs, &LoggerWrapper{})
-					So(err, ShouldBeNil)
-					wrapper = MustGetLoggerWrapper(logger)
-					So(wrapper, ShouldHaveSameTypeAs, &LoggerWrapper{})
-					So(i+1, ShouldEqual, wrapper.currentLogger)
-				}
+	t.Run("NewWrapper", func(t *testing.T) {
+		for _, logger := range loggers {
+			wrapper, err := NewLoggerWrapper(logger)
+			assert.IsType(t, &LoggerWrapper{}, wrapper)
+			assert.NoError(t, err)
+			wrapper = MustGetLoggerWrapper(logger)
+			assert.IsType(t, &LoggerWrapper{}, wrapper)
+		}
 
-				Convey("The loggers should enter its case ", func() {
-					args := []interface{}{}
-					format := "some format"
-					for _, logger := range loggers {
-						wrapper := MustGetLoggerWrapper(logger)
-						wrapper.Print(args)
-						wrapper.Printf(format, args)
-						wrapper.Println(args)
-
-						wrapper.Debug(args)
-						wrapper.Debugf(format, args...)
-						wrapper.Debugln(args)
-
-						wrapper.Info(args)
-						wrapper.Infof(format, args...)
-						wrapper.Infoln(args)
-
-						wrapper.Warning(args)
-						wrapper.Warningf(format, args...)
-						wrapper.Warningln(args)
-
-						wrapper.Error(args)
-						wrapper.Errorf(format, args)
-						wrapper.Errorln(args)
-
-						wrapper.Fatal(args)
-						wrapper.Fatalf(format, args)
-						wrapper.Fatalln(args)
-
-						wrapper.Panic(args)
-						wrapper.Panicf(format, args)
-						wrapper.Panicln(args)
-					}
-				})
-			})
-
-			Convey(`If logger doesn't implement any known interface`, func() {
-				unknownLogger := NonLogger{}
-				wrapper, err := NewLoggerWrapper(unknownLogger)
-				So(err, ShouldBeError)
-				So(wrapper, ShouldBeNil)
-
-				So(func() { MustGetLoggerWrapper(unknownLogger) }, ShouldPanic)
-			})
-		})
-	})
-}
-
-func TestBuildLeveled(t *testing.T) {
-	Convey("Having some logging parameters", t, func() {
-		level := DEBUG
+		args := []interface{}{}
 		format := "some format"
-		arguments := []interface{}{"First", "Second"}
+		for _, logger := range loggers {
+			wrapper := MustGetLoggerWrapper(logger)
+			wrapper.Print(args)
+			wrapper.Printf(format, args)
+			wrapper.Println(args)
 
-		Convey("Providing nil format should add level as first argument to args", func() {
-			args := buildLeveled(level, nil, arguments...)
-			So(args[0], ShouldEqual, fmt.Sprintf("%s: ", level))
-		})
+			wrapper.Debug(args)
+			wrapper.Debugf(format, args...)
+			wrapper.Debugln(args)
 
-		Convey("buildLeveled with format should change the format string", func() {
-			thisFormat := format
-			args := buildLeveled(level, &thisFormat, arguments...)
-			So(thisFormat, ShouldNotEqual, format)
-			So(args, ShouldResemble, arguments)
-		})
+			wrapper.Info(args)
+			wrapper.Infof(format, args...)
+			wrapper.Infoln(args)
+
+			wrapper.Warning(args)
+			wrapper.Warningf(format, args...)
+			wrapper.Warningln(args)
+
+			wrapper.Error(args)
+			wrapper.Errorf(format, args)
+			wrapper.Errorln(args)
+
+			wrapper.Fatal(args)
+			wrapper.Fatalf(format, args)
+			wrapper.Fatalln(args)
+
+			wrapper.Panic(args)
+			wrapper.Panicf(format, args)
+			wrapper.Panicln(args)
+		}
+	})
+
+	t.Run("NotImplement", func(t *testing.T) {
+		unknownLogger := nonLogger{}
+		wrapper, err := NewLoggerWrapper(unknownLogger)
+		assert.Error(t, err)
+		assert.Nil(t, wrapper)
+		assert.Panics(t, func() { MustGetLoggerWrapper(unknownLogger) })
 	})
 }
 
-func ExampleNewLoggerWrapper(t *testing.T) {
-	// Having some logger (i.e. BasicLogger) that doesn't implement ExtendedLeveledLogger
-	basic := NewBasicLogger(os.Stdout, "", 0)
+// TestBuildLeveled tests the buildLeveled function.
+func TestBuildLeveled(t *testing.T) {
+	level := DEBUG
+	format := "some format"
+	arguments := []interface{}{"First", "Second"}
 
-	// In order to wrap it with LoggerWrapper use NewLoggerWrapper
-	// or MustGetLoggerWrapper functions
-	wrapper := MustGetLoggerWrapper(basic)
+	// Providing nil format should add level as first argument to args
+	t.Run("NilFormat", func(t *testing.T) {
+		args := buildLeveled(level, nil, arguments...)
+		assert.Equal(t, fmt.Sprintf("%s: ", level), args[0])
+	})
 
-	// while having it wrapped by using LoggerWrapper we can use the methods of
-	// ExtendedLeveledLogger
-	wrapper.Println("Have fun")
-	wrapper.Fatalln("This is the end...")
-
+	t.Run("Formatted", func(t *testing.T) {
+		thisFormat := format
+		buildLeveled(level, &thisFormat, arguments...)
+		assert.NotEqual(t, format, thisFormat)
+	})
 }
