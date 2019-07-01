@@ -33,6 +33,11 @@ const (
 	UNKNOWN
 )
 
+// IsAllowed checks if the 'other' Level is allowed to be used in compare with 'l' Level.
+func (l Level) IsAllowed(other Level) bool {
+	return other >= l
+}
+
 var levelNames = map[Level]string{
 	DEBUG3:   "DEBUG3",
 	DEBUG2:   "DEBUG2",
@@ -143,8 +148,23 @@ func NewBasicLogger(out io.Writer, prefix string, flags int) *BasicLogger {
 	return logger
 }
 
+var _ SubLogger = &BasicLogger{}
+
+// SubLogger creates new sublogger for given logger.
+func (l *BasicLogger) SubLogger() LeveledLogger {
+	sub := &BasicLogger{
+		stdLogger:   l.stdLogger,
+		level:       l.level,
+		outputDepth: 4,
+	}
+	return sub
+}
+
+var _ LevelSetter = &BasicLogger{}
+
 // SetLevel sets the level of logging for given Logger.
 func (l *BasicLogger) SetLevel(level Level) {
+	l.Debugf("Setting log level to: '%s'", level)
 	l.level = level
 }
 
@@ -157,6 +177,11 @@ func (l *BasicLogger) SetOutputDepth(depth int) {
 // GetOutputDepth gets the output depth
 func (l *BasicLogger) GetOutputDepth() int {
 	return l.outputDepth
+}
+
+// GetLevel gets current logger level.
+func (l *BasicLogger) GetLevel() Level {
+	return l.level
 }
 
 // Debug3 logs a message with DEBUG level.

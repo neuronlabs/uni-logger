@@ -1,8 +1,18 @@
 package unilogger
 
+// SubLogger interface that creates and returns new sub logger.
+type SubLogger interface {
+	SubLogger() LeveledLogger
+}
+
 // LevelSetter is the interface that allows to set the logging level.
 type LevelSetter interface {
 	SetLevel(level Level)
+}
+
+// LevelGetter is the interface used to get current logger level.
+type LevelGetter interface {
+	GetLevel() Level
 }
 
 // OutputDepthSetter is the interface that sets the output depth for the logging interface.
